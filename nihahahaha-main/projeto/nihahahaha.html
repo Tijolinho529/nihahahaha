@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>nihahahaha</title>
+  <link rel="icon" type="image/png" href="./images/Koyuki.png">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      background-image: url('./images/Memorial_Lobby_Koyuki.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: cover;
+      background-attachment: fixed;
+      background-color: #f8f8f8;
+    }
+
+    .click-meme {
+      position: absolute;
+      width: 200px;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      opacity: 1;
+      transition: opacity 2s ease, transform 2s ease;
+      user-select: none;
+    }
+
+    .fade-out {
+      opacity: 0;
+      transform: translate(-50%, -70%) scale(0.9);
+    }
+
+    #bg-audio-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+
+    #bg-audio-toggle img {
+      width: 30px;
+      height: 30px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <button id="bg-audio-toggle">
+    <img id="bg-audio-icon" src="./images/sound-on.png" alt="Som ligado">
+  </button>
+
+  <script>
+    // Caminhos dos arquivos
+    const clickImageNormal = './images/nihahahaha-meme.jpeg';
+    const clickAudioNormal = './audios/Koyuki_CommonSkill.ogg';
+
+    const clickImageRare = './images/Koyuki_Crying.png';
+    const clickAudioRare = './audios/Koyuki_Formation_Select.ogg';
+
+    const bgAudioPath = './audios/Track_104_Mitsukiyo_Cotton_Candy_Island.ogg';
+
+    // Pré-carregar áudio padrão
+    const baseClickAudio = new Audio(clickAudioNormal);
+    baseClickAudio.preload = 'auto';
+
+    // Áudio de fundo
+    const bgAudio = new Audio(bgAudioPath);
+    bgAudio.volume = 0.5;
+    bgAudio.preload = 'auto';
+    let bgAudioEnabled = true;
+    let bgAudioStarted = false;
+
+    function playBackgroundAudio() {
+      if (!bgAudioEnabled) return;
+      bgAudio.currentTime = 0;
+      bgAudio.play().catch(err => console.warn("Erro ao tocar áudio de fundo:", err));
+    }
+
+    bgAudio.addEventListener('ended', () => {
+      if (bgAudioEnabled) {
+        setTimeout(playBackgroundAudio, 5000);
+      }
+    });
+
+    // Timer de inatividade
+    let inactivityTimer;
+
+    document.body.addEventListener('click', function(event) {
+      // Se a música de fundo ainda não começou, inicia no primeiro clique
+      if (!bgAudioStarted) {
+        bgAudioStarted = true;
+        playBackgroundAudio();
+      }
+
+      // Se clicou no botão, não gera imagem
+      if (event.target.closest('#bg-audio-toggle')) return;
+
+      // === SISTEMA DE CHANCES ===
+      // Sorteia qual imagem/áudio usar
+      let imgSrc, audioSrc;
+      if (Math.random() < 0.80) {
+        // 80% de chance
+        imgSrc = clickImageNormal;
+        audioSrc = clickAudioNormal;
+      } else {
+        // 20% de chance
+        imgSrc = clickImageRare;
+        audioSrc = clickAudioRare;
+      }
+
+      // Cria a imagem
+      const img = document.createElement('img');
+      img.className = 'click-meme';
+      img.src = imgSrc;
+      img.style.left = event.clientX + 'px';
+      img.style.top  = event.clientY + 'px';
+      document.body.appendChild(img);
+
+      // Reproduz o áudio correspondente
+      const a = new Audio(audioSrc);
+      a.play().catch(err => console.warn('Play() falhou:', err));
+
+      // Reinicia o timer de inatividade
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        document.querySelectorAll('.click-meme').forEach(img => {
+          img.classList.add('fade-out');
+          setTimeout(() => img.remove(), 2000);
+        });
+      }, 5000);
+    });
+
+    // Controle do botão de áudio
+    const bgAudioToggle = document.getElementById('bg-audio-toggle');
+    const bgAudioIcon = document.getElementById('bg-audio-icon');
+
+    bgAudioToggle.addEventListener('click', () => {
+      bgAudioEnabled = !bgAudioEnabled;
+
+      if (bgAudioEnabled) {
+        bgAudioIcon.src = './images/sound-on.png';
+        playBackgroundAudio();
+      } else {
+        bgAudioIcon.src = './images/sound-off.png';
+        bgAudio.pause();
+      }
+    });
+  </script>
+</body>
+</html>
